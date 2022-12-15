@@ -501,50 +501,39 @@ bool cargaPartidas(tListaPartidas& partidas) {
 
 void cargaTablero (tTablero tablero, ifstream& archivo) {
 // hacer string a casilla segun kaka
-int normal;
-string nombres_normal;
+    int normal;
+    string nombres_normal;
     archivo >> normal >> nombres_normal;
     while (normal != 0) {
 
         if (nombres_normal == "OCA") {
             tablero[normal - 1] = OCA;
-        }
-        else if (nombres_normal == "PUENTE1") {
+        } else if (nombres_normal == "PUENTE1") {
             tablero[normal - 1] = PUENTE1;
-        }
-        else if (nombres_normal == "PUENTE2") {
+        } else if (nombres_normal == "PUENTE2") {
             tablero[normal - 1] = PUENTE2;
-        }
-        else if (nombres_normal == "POSADA") {
+        } else if (nombres_normal == "POSADA") {
             tablero[normal - 1] = POSADA;
-        }
-        else if (nombres_normal == "DADO1") {
+        } else if (nombres_normal == "DADO1") {
             tablero[normal - 1] = DADO1;
-        }
-        else if (nombres_normal == "POZO") {
+        } else if (nombres_normal == "POZO") {
             tablero[normal - 1] = POZO;
-        }
-        else if (nombres_normal == "LABERINTO") {
+        } else if (nombres_normal == "LABERINTO") {
             tablero[normal - 1] = LABERINTO;
-        }
-        else if (nombres_normal == "CARCEL") {
+        } else if (nombres_normal == "CARCEL") {
             tablero[normal - 1] = CARCEL;
-        }
-        else if (nombres_normal == "DADO2") {
+        } else if (nombres_normal == "DADO2") {
             tablero[normal - 1] = DADO2;
-        }
-        else if (nombres_normal == "CALAVERA") {
+        } else if (nombres_normal == "CALAVERA") {
             tablero[normal - 1] = CALAVERA;
         }
 
         archivo >> normal >> nombres_normal;
+    }
 }
 
 void cargaJugadores ( tEstadoJugadores &jugadores, ifstream &archivo) {
     archivo.open("partidas.txt");
-    tEstadoPartida estadoPartida;
-
-    archivo >> estadoPartida.turno_Jugador; //esto lo leo en carga partidas
     for (int i = 0; i < 2; i++) { //en el numero 3, falta ver lo de los jugadores
         archivo >> jugadores[i].casilla;
         archivo >> jugadores[i].penalizacion;
