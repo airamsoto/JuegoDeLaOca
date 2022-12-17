@@ -3,4 +3,4 @@ project(OcaV3)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(OcaV3 ocav3.cpp)
+add_executable(OcaV3 PrarcticaOcav3.cpp PrarcticaOcav3.cpp)

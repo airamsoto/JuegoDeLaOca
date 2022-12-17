@@ -41,6 +41,8 @@ typedef struct {
     int turno_Jugador;
 }tEstadoPartida;
 
+
+
 typedef tEstadoPartida tArrayPartidas[MAX_PARTIDAS];
 
 typedef struct {
@@ -67,14 +69,15 @@ void pintaTablero(const tEstadoPartida& partida);
 void pintaNumCasilla(int fila, int casillasPorFila);
 void pintaBorde(int casillasPorFila);
 void pintaTipoCasilla(const tTablero tablero, int fila, int casillasPorFila);
-void pintaJugadores(const tEstadoPartida partida, int fila, int casillasPorFila);
+void pintaJugadores(const tEstadoPartida& partida, int fila, int casillasPorFila);
 string casillaAstring(tCasillas casilla);
 int partida(tEstadoPartida& estado);
 
-void cargaTablero (tTablero tablero, ifstream& archivo);
+void cargaTablero(tTablero tablero, ifstream& archivo);
 bool cargaPartidas(tListaPartidas& partidas);
-void cargaJugadores ( tEstadoJugadores &jugadores, ifstream &archivo);
-
+void cargaJugadores(tEstadoJugadores& jugadores, ifstream& archivo);
+bool insertaNuevaPartida (const tListaPartidas &partidas, const tEstadoPartida& partidaOca);
+void guardaTablero (const tTablero tablero, ofstream& archivo);
 
 
 int main() {
@@ -85,7 +88,78 @@ int main() {
     //pintaTablero(estado);
     //iniciaJugadores(jugadores);
     //estado.turno_Jugador = quienEmpieza();
-    partida(estado);
+    //partida(estado);
+    srand(time(NULL));
+    int dado;
+    bool premio;
+    //tEstadoJugador estadoJug;
+    //tEstadoJugadores jugadores;
+    char siguiente = '\n';
+    iniciaJugadores(estado.arrayJ);
+    cout << "|           --------         --------     -------   -------- " << endl;
+    cout << "|          |        |       |        |   |         |        |" << endl;
+    cout << "|          |--------|       |        |   |         |--------|" << endl;
+    cout << "|          |        |       |        |   |         |        |" << endl;
+    cout << "|________  |        |        --------     -------  |        |" << endl;
+    pintaTablero(estado);
+    cout << "SELECCIONE MODO DE JUEGO:" << endl;
+    cout << "MODO NORMAL(0) ------- MODO DEBUG(1)" << endl;
+    cin >> MODO_DEBUG;
+    int casillaActual;
+    estado.turno_Jugador = quienEmpieza();
+    while (estado.arrayJ[estado.turno_Jugador - 1].casilla < NUM_CASILLAS) {
+        casillaActual = estado.arrayJ[estado.turno_Jugador - 1].casilla;
+        if (estado.arrayJ[estado.turno_Jugador - 1].penalizacion > 0) {
+            cout << "El jugador " << estado.turno_Jugador << " tiene " << estado.arrayJ[estado.turno_Jugador - 1].penalizacion << " turnos sin jugar" << endl;
+            estado.arrayJ[estado.turno_Jugador - 1].penalizacion--;
+            if (estado.turno_Jugador < NUM_JUGADORES) {
+                estado.turno_Jugador++;
+            }
+            else {
+                estado.turno_Jugador = 1;
+            }
+
+            cout << "\t++TURNO DEL JUGADOR " << estado.turno_Jugador << "++" << endl;
+
+        }
+        cout << "CASILLA ACTUAL: " << casillaActual << endl;
+        if (MODO_DEBUG == true) {
+            cout << "VALOR DEL DADO: ";
+            dado = tirardadoManual();
+            cout << endl;
+        }
+        else {
+            cout << "VALOR DEL DADO: ";
+            dado = tirarDado();
+            cout << dado << endl;
+
+        }
+        casillaActual += dado;
+        cout << "PASAS A LA CASILLA: " << casillaActual << endl;
+        premio = esCasillaPremio(estado.tablero, casillaActual);
+        //LA FUNCION EFECTO TIRADA NS SI FUNCIONARA BIEN CON estadoJug
+        efectoTirada(estado.tablero, estado.arrayJ[estado.turno_Jugador - 1]);
+        tirada(estado.tablero, estado.arrayJ[estado.turno_Jugador - 1], MODO_DEBUG);
+        cout << "PULSE ENTER PARA CONTINUAR";
+        pintaTablero(estado);
+        cin.get(siguiente);
+        cout << endl;
+        estado.arrayJ[estado.turno_Jugador - 1].casilla = casillaActual;
+        if (estado.arrayJ[estado.turno_Jugador - 1].casilla < NUM_CASILLAS) {
+            if (estado.turno_Jugador < NUM_JUGADORES) {
+                estado.turno_Jugador++;
+            }
+            else {
+                estado.turno_Jugador = 1;
+            }
+
+
+            cout << "\t++TURNO DEL JUGADOR " << estado.turno_Jugador << "++" << endl;
+        }
+
+
+    }
+    cout << "\t **** GANA LA PARTIDA EL JUGADOR " << estado.turno_Jugador << endl;
 
 
     return 0;
@@ -213,6 +287,7 @@ void buscaCasillaAvanzando(const tTablero tablero, tCasillas tipo, int& posicion
 void efectoTirada(const tTablero tablero, tEstadoJugador& estadoJug) {
 
     if (esCasillaPremio(tablero, estadoJug.casilla)) {
+        cout << "ROBER ES ANORMAL" << endl;
         estadoJug.casilla = saltaACasilla(tablero, estadoJug.casilla);
     }
     else {
@@ -337,10 +412,12 @@ bool esCasillaPremio(const tTablero tablero, int casillaActual) {
     bool premio;
     if (tablero[casillaActual - 1] == OCA || tablero[casillaActual - 1] == PUENTE1 || tablero[casillaActual - 1] == DADO1 || tablero[casillaActual - 1] == PUENTE2 || tablero[casillaActual - 1] == DADO2) {
         premio = true;
+        cout << "JAJAJAJA" << endl;
     }
     else {
         premio = false;
     }
+
     return premio;
 }
 
@@ -418,7 +495,7 @@ void pintaTipoCasilla(const tTablero tablero, int fila, int casillasPorFila) {
 
 }
 // HAY QUE CAMBIAR ALGO EN ESTA FUNCION
-void pintaJugadores(const tEstadoPartida partida, int fila, int casillasPorFila) {
+void pintaJugadores(const tEstadoPartida& partida, int fila, int casillasPorFila) {
     int casilla;
 
     int blancos = MAX_JUGADORES - NUM_JUGADORES;
@@ -483,7 +560,7 @@ bool cargaPartidas(tListaPartidas& partidas) {
     string nombre_fichero_partidas;
     ifstream archivo;
     int numero_partidas;
-    bool abre_fichero;
+    bool abre_fichero = false;
     cout << "INTRODUCE EL NOMBRE DEL FICHERO DE LAS PARTIDAS: ";
     cin >> nombre_fichero_partidas;
     archivo.open(nombre_fichero_partidas);
@@ -497,10 +574,11 @@ bool cargaPartidas(tListaPartidas& partidas) {
         }
 
     }
+    return abre_fichero;
 }
 
-void cargaTablero (tTablero tablero, ifstream& archivo) {
-// hacer string a casilla segun kaka
+void cargaTablero(tTablero tablero, ifstream& archivo) {
+    // hacer string a casilla segun kaka
     int normal;
     string nombres_normal;
     archivo >> normal >> nombres_normal;
@@ -508,23 +586,32 @@ void cargaTablero (tTablero tablero, ifstream& archivo) {
 
         if (nombres_normal == "OCA") {
             tablero[normal - 1] = OCA;
-        } else if (nombres_normal == "PUENTE1") {
+        }
+        else if (nombres_normal == "PUENTE1") {
             tablero[normal - 1] = PUENTE1;
-        } else if (nombres_normal == "PUENTE2") {
+        }
+        else if (nombres_normal == "PUENTE2") {
             tablero[normal - 1] = PUENTE2;
-        } else if (nombres_normal == "POSADA") {
+        }
+        else if (nombres_normal == "POSADA") {
             tablero[normal - 1] = POSADA;
-        } else if (nombres_normal == "DADO1") {
+        }
+        else if (nombres_normal == "DADO1") {
             tablero[normal - 1] = DADO1;
-        } else if (nombres_normal == "POZO") {
+        }
+        else if (nombres_normal == "POZO") {
             tablero[normal - 1] = POZO;
-        } else if (nombres_normal == "LABERINTO") {
+        }
+        else if (nombres_normal == "LABERINTO") {
             tablero[normal - 1] = LABERINTO;
-        } else if (nombres_normal == "CARCEL") {
+        }
+        else if (nombres_normal == "CARCEL") {
             tablero[normal - 1] = CARCEL;
-        } else if (nombres_normal == "DADO2") {
+        }
+        else if (nombres_normal == "DADO2") {
             tablero[normal - 1] = DADO2;
-        } else if (nombres_normal == "CALAVERA") {
+        }
+        else if (nombres_normal == "CALAVERA") {
             tablero[normal - 1] = CALAVERA;
         }
 
@@ -532,88 +619,109 @@ void cargaTablero (tTablero tablero, ifstream& archivo) {
     }
 }
 
-void cargaJugadores ( tEstadoJugadores &jugadores, ifstream &archivo) {
+void cargaJugadores(tEstadoJugadores& jugadores, ifstream& archivo) {
     archivo.open("partidas.txt");
-    for (int i = 0; i < 2; i++) { //en el numero 3, falta ver lo de los jugadores
+    for (int i = 0; i < NUM_JUGADORES; i++) { //LO DE NUM JUGADORES HAY QUE VERLO BIEN
         archivo >> jugadores[i].casilla;
         archivo >> jugadores[i].penalizacion;
     }
 
 }
 
-void eliminarPatida (tListaPartidas& partidas, int indice) {
+bool insertaNuevaPartida ( tListaPartidas &partidas, const tEstadoPartida& partidaOca) {
+    bool insertar = false;
+    if  (partidas.contador < MAX_PARTIDAS) {
+        partidas.arrayPartidas[partidas.contador] = partidaOca;
+        insertar = true;
+        partidas.contador++;
+    }
+    return insertar;
+}
+
+void guardaTablero (const tTablero tablero, ofstream& archivo) {
+    //archivo << tablero
 
 }
 
+void guardaJugadores (const tEstadoJugadores jugadores, ofstream& archivo) {
+    for (int i = 0; i < NUM_JUGADORES; i++) { //falta lo de ver en que momento esta el jugador
+        archivo << jugadores[i].casilla << " " << jugadores[i].penalizacion;
+    }
+}
 
-    int partida(tEstadoPartida& estado) {
-        srand(time(NULL));
-        int dado;
-        bool premio;
-        tEstadoJugador estadoJug;
-        tEstadoJugadores jugadores;
-        char siguiente = '\n';
-        iniciaJugadores(jugadores);
-        cout << "|           --------         --------     -------   -------- " << endl;
-        cout << "|          |        |       |        |   |         |        |" << endl;
-        cout << "|          |--------|       |        |   |         |--------|" << endl;
-        cout << "|          |        |       |        |   |         |        |" << endl;
-        cout << "|________  |        |        --------     -------  |        |" << endl;
-        pintaTablero(estado);
-        cout << "SELECCIONE MODO DE JUEGO:" << endl;
-        cout << "MODO NORMAL(0) ------- MODO DEBUG(1)" << endl;
-        cin >> MODO_DEBUG;
-        int casillaActual;
-        estado.turno_Jugador = quienEmpieza();
-        while (jugadores[estado.turno_Jugador - 1].casilla < NUM_CASILLAS) {
-            casillaActual = jugadores[estado.turno_Jugador - 1].casilla;
-            if (jugadores[estado.turno_Jugador - 1].penalizacion > 0) {
-                cout << "El jugador " << estado.turno_Jugador << " tiene "
-                     << jugadores[estado.turno_Jugador - 1].penalizacion << " turnos sin jugar" << endl;
-                jugadores[estado.turno_Jugador - 1].penalizacion--;
-                if (estado.turno_Jugador < NUM_JUGADORES) {
-                    estado.turno_Jugador++;
-                } else {
-                    estado.turno_Jugador = 1;
-                }
+int partida(tEstadoPartida& estado) {
+    srand(time(NULL));
+    int dado;
+    bool premio;
+    tEstadoJugador estadoJug;
+    tEstadoJugadores jugadores;
+    char siguiente = '\n';
+    iniciaJugadores(estado.arrayJ);
+    cout << "|           --------         --------     -------   -------- " << endl;
+    cout << "|          |        |       |        |   |         |        |" << endl;
+    cout << "|          |--------|       |        |   |         |--------|" << endl;
+    cout << "|          |        |       |        |   |         |        |" << endl;
+    cout << "|________  |        |        --------     -------  |        |" << endl;
+    pintaTablero(estado);
+    cout << "SELECCIONE MODO DE JUEGO:" << endl;
+    cout << "MODO NORMAL(0) ------- MODO DEBUG(1)" << endl;
+    cin >> MODO_DEBUG;
+    //int casillaActual;
+    estado.turno_Jugador = quienEmpieza();
+    while (estado.arrayJ[estado.turno_Jugador - 1].casilla < NUM_CASILLAS) {
 
-                cout << "\t++TURNO DEL JUGADOR " << estado.turno_Jugador << "++" << endl;
-
+        if (estado.arrayJ[estado.turno_Jugador - 1].penalizacion > 0) {
+            cout << "El jugador " << estado.turno_Jugador << " tiene " << estado.arrayJ[estado.turno_Jugador - 1].penalizacion << " turnos sin jugar" << endl;
+            estado.arrayJ[estado.turno_Jugador - 1].penalizacion--;
+            if (estado.turno_Jugador < NUM_JUGADORES) {
+                estado.turno_Jugador++;
             }
-            cout << "CASILLA ACTUAL: " << casillaActual << endl;
-            if (MODO_DEBUG == true) {
-                cout << "VALOR DEL DADO: ";
-                dado = tirardadoManual();
-                cout << endl;
-            } else {
-                cout << "VALOR DEL DADO: ";
-                dado = tirarDado();
-                cout << dado << endl;
-
+            else {
+                estado.turno_Jugador = 1;
             }
-            casillaActual += dado;
-            cout << "PASAS A LA CASILLA: " << casillaActual;
-            premio = esCasillaPremio(estado.tablero, casillaActual);
-            //LA FUNCION EFECTO TIRADA NS SI FUNCIONARA BIEN CON estadoJug
-            efectoTirada(estado.tablero, estadoJug);
-            tirada(estado.tablero, estadoJug, MODO_DEBUG);
-            cout << "PULSE ENTER PARA CONTINUAR";
-            pintaTablero(estado);
-            cin.get(siguiente);
-            cout << endl;
-            jugadores[estado.turno_Jugador - 1].casilla = casillaActual;
-            if (casillaActual < NUM_CASILLAS) {
-                if (estado.turno_Jugador == NUM_JUGADORES && casillaActual < NUM_CASILLAS) {
-                    estado.turno_Jugador = 1;
-                } else {
-                    estado.turno_Jugador++;
-                }
 
-
-                cout << "\t++TURNO DEL JUGADOR " << estado.turno_Jugador << "++" << endl;
-            }
-            cout << "\t **** GANA LA PARTIDA EL JUGADOR " << estado.turno_Jugador << endl;
+            cout << "\t++TURNO DEL JUGADOR " << estado.turno_Jugador << "++" << endl;
 
         }
-        return estado.turno_Jugador;
+        cout << "CASILLA ACTUAL: " << estado.arrayJ[estado.turno_Jugador - 1].casilla << endl;
+        if (MODO_DEBUG == true) {
+            cout << "VALOR DEL DADO: ";
+            dado = tirardadoManual();
+            cout << endl;
+        }
+        else {
+            cout << "VALOR DEL DADO: ";
+            dado = tirarDado();
+            cout << dado << endl;
+
+        }
+        estado.arrayJ[estado.turno_Jugador - 1].casilla += dado;
+        cout << "PASAS A LA CASILLA: " << estado.arrayJ[estado.turno_Jugador - 1].casilla << endl;
+        premio = esCasillaPremio(estado.tablero, estado.arrayJ[estado.turno_Jugador - 1].casilla);
+
+        //LA FUNCION EFECTO TIRADA NS SI FUNCIONARA BIEN CON estadoJug
+        efectoTirada(estado.tablero, estadoJug);
+        tirada(estado.tablero, estadoJug, MODO_DEBUG);
+        cout << "PULSE ENTER PARA CONTINUAR";
+        pintaTablero(estado);
+        cin.get(siguiente);
+        cout << endl;
+        //estado.arrayJ[estado.turno_Jugador - 1].casilla = casillaActual;
+        if (estado.arrayJ[estado.turno_Jugador - 1].casilla < NUM_CASILLAS) {
+            if (estado.turno_Jugador < NUM_JUGADORES) {
+                estado.turno_Jugador++;
+            }
+            else {
+                estado.turno_Jugador = 1;
+            }
+
+
+            cout << "\t++TURNO DEL JUGADOR " << estado.turno_Jugador << "++" << endl;
+        }
+
+
     }
+    cout << "\t **** GANA LA PARTIDA EL JUGADOR " << estado.turno_Jugador << endl;
+    return estado.turno_Jugador;
+}
+
