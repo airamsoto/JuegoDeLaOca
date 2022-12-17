@@ -77,8 +77,9 @@ void cargaTablero(tTablero tablero, ifstream& archivo);
 bool cargaPartidas(tListaPartidas& partidas);
 void cargaJugadores(tEstadoJugadores& jugadores, ifstream& archivo);
 bool insertaNuevaPartida (const tListaPartidas &partidas, const tEstadoPartida& partidaOca);
+void guardaPartidas (const tListaPartidas &partidas);
 void guardaTablero (const tTablero tablero, ofstream& archivo);
-
+void guardaJugadores (const tEstadoJugadores jugadores, ofstream& archivo);
 
 int main() {
     tEstadoPartida estado;
@@ -628,6 +629,13 @@ void cargaJugadores(tEstadoJugadores& jugadores, ifstream& archivo) {
 
 }
 
+void eliminarPartida (tListaPartidas &partidas, int indice) {
+    for (int j = indice; j < partidas.contador - 1; j++) {
+        partidas.arrayPartidas[j] = partidas.arrayPartidas[j+1];
+    }
+    partidas.contador--;
+}
+
 bool insertaNuevaPartida ( tListaPartidas &partidas, const tEstadoPartida& partidaOca) {
     bool insertar = false;
     if  (partidas.contador < MAX_PARTIDAS) {
@@ -638,9 +646,35 @@ bool insertaNuevaPartida ( tListaPartidas &partidas, const tEstadoPartida& parti
     return insertar;
 }
 
-void guardaTablero (const tTablero tablero, ofstream& archivo) {
-    //archivo << tablero
+void guardaPartidas (const tListaPartidas &partidas) {
+    string nombre;
+    ofstream archivo;
 
+    cout << "Introduzca el nombre del fichero en el que quiera almacenar los datos: ";
+    cin >> nombre;
+    archivo.open(nombre);
+    if (archivo.is_open()) {
+        archivo << partidas.contador;
+        for (int i = 0; i < partidas.contador; i++) {
+            guardaTablero(partidas.arrayPartidas[i].tablero, archivo);
+            archivo << partidas.arrayPartidas[i].turno_Jugador;
+            guardaJugadores(partidas.arrayPartidas[i].arrayJ, archivo);
+        }
+        archivo.close();
+    }
+    else {
+        cout << "El archivo no se pudo abrir" << endl;
+    }
+
+}
+
+void guardaTablero (const tTablero tablero, ofstream& archivo) {
+    for (int i = 0; i < NUM_CASILLAS; i++) {
+        if (tablero[i-1] != 0) {
+            archivo << i << " " << casillaAstring(tablero[i]) << endl;
+        }
+    }
+archivo << 0 << endl;
 }
 
 void guardaJugadores (const tEstadoJugadores jugadores, ofstream& archivo) {
